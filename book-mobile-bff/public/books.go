@@ -1,96 +1,73 @@
 package public
 
 import (
-	"errors"
-	"fmt"
+	"encoding/json"
 
-	"github.com/Rx-11/EDIS-A1/ai"
-	"github.com/Rx-11/EDIS-A1/common"
-	"github.com/Rx-11/EDIS-A1/config"
-	"github.com/Rx-11/EDIS-A1/db"
-	"github.com/Rx-11/EDIS-A1/pkg"
-	"github.com/Rx-11/EDIS-A1/pkg/models"
+	"github.com/Rx-11/EDIS-A2/book-mobile-bff/common"
+	"github.com/Rx-11/EDIS-A2/book-mobile-bff/config"
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
+	"github.com/gofiber/fiber/v3/client"
 )
 
 func fetchBookByISBN(c *fiber.Ctx) error {
-
 	param := c.Locals("param").(fetchBookByISBNParam)
 
-	book, err := pkg.BookRepo.FetchBookByISBN(db.GetDB(), param.ISBN)
+	url := config.GetConfig().BookSvcURL + "/books/" + param.ISBN
+
+	resp, err := config.GetFiberClient().Get(url)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.Status(common.ErrNotFound.StatusCode).JSON(common.ErrNotFound)
-		}
-		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
+		return c.Status(common.ErrInternalServerError.StatusCode).
+			JSON(common.ErrInternalServerError)
 	}
 
-	return c.JSON(book)
+	if resp.StatusCode() != fiber.StatusOK {
+		return c.Status(resp.StatusCode()).Send(resp.Body())
+	}
+
+	var bookResponse bookResponse
+	err = json.Unmarshal(resp.Body(), &bookResponse)
+	if err != nil {
+		return c.Status(common.ErrInternalServerError.StatusCode).
+			JSON(common.ErrInternalServerError)
+	}
+
+	if bookResponse.Genre == "non fiction" {
+		book := getbookResponse{
+			ISBN:        bookResponse.ISBN,
+			Title:       bookResponse.Title,
+			Author:      bookResponse.Author,
+			Genre:       3,
+			Price:       bookResponse.Price,
+			Description: bookResponse.Description,
+			Quantity:    bookResponse.Quantity,
+		}
+		return c.JSON(book)
+	}
+
+	c.Status(resp.StatusCode())
+
+	return c.Send(resp.Body())
 }
 
 func createBook(c *fiber.Ctx) error {
 	body := c.Locals("body").(createBookRequest)
 
-	existingBook, _ := pkg.BookRepo.FetchBookByISBN(db.GetDB(), body.ISBN)
-	if existingBook != nil {
-		return c.Status(common.ErrUnprocessableEntity.StatusCode).JSON(common.NewError(
-			common.ErrUnprocessableEntity.StatusCode,
-			"This ISBN already exists in the system.",
-		))
-	}
-
-	book, err := pkg.BookRepo.CreateBook(db.GetDB(), models.Book{
-		ISBN:        body.ISBN,
-		Title:       body.Title,
-		Author:      body.Author,
-		Price:       body.Price,
-		Description: body.Description,
-		Genre:       body.Genre,
-		Quantity:    *body.Quantity,
-	})
+	resp, err := config.GetFiberClient().Post(config.GetConfig().BookSvcURL+"/books/", client.Config{Body: body})
 	if err != nil {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
 	}
 
-	SummaryResp, err := config.Gemini.Chat(ai.ChatRequest{Messages: []ai.Message{{Role: "model", Content: "Give a 500 word summary of the following book"}, {Role: "user", Content: fmt.Sprintf("Book Title: %s\nBook Description: %s\nBook Author: %s\nBook ISBN: %s", book.Title, book.Description, book.Author, book.ISBN)}}})
-	if err == nil && SummaryResp.Response != "" {
-		book.Summary = &SummaryResp.Response
-		pkg.BookRepo.UpdateBook(db.GetDB(), *book)
-	}
-	responseBook := *book
-	responseBook.Summary = nil
-
-	return c.Status(fiber.StatusCreated).JSON(responseBook)
+	return c.Status(resp.StatusCode()).Send(resp.Body())
 }
 
 func updateBook(c *fiber.Ctx) error {
 	param := c.Locals("param").(fetchBookByISBNParam)
 	body := c.Locals("body").(updateBookRequest)
 
-	if param.ISBN != body.ISBN {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "ISBN in URL does not match ISBN in body"})
-	}
-
-	existingBook, err := pkg.BookRepo.FetchBookByISBN(db.GetDB(), param.ISBN)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.Status(common.ErrNotFound.StatusCode).JSON(common.ErrNotFound)
-		}
-		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
-	}
-
-	existingBook.Title = body.Title
-	existingBook.Author = body.Author
-	existingBook.Price = body.Price
-	existingBook.Description = body.Description
-	existingBook.Genre = body.Genre
-	existingBook.Quantity = *body.Quantity
-
-	book, err := pkg.BookRepo.UpdateBook(db.GetDB(), *existingBook)
+	resp, err := config.GetFiberClient().Put(config.GetConfig().BookSvcURL+"/books/"+param.ISBN, client.Config{Body: body})
 	if err != nil {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
 	}
-	book.Summary = nil
-	return c.Status(fiber.StatusOK).JSON(book)
+
+	return c.Status(fiber.StatusOK).JSON(resp.Body())
 }
