@@ -9,10 +9,9 @@ import (
 	"time"
 
 	"github.com/Rx-11/EDIS-A2/book-web-bff/common"
-	"github.com/Rx-11/EDIS-A2/book-web-bff/config"
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 var validate = validator.New()
@@ -178,7 +177,7 @@ func jwtMiddleware() fiber.Handler {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, errors.New("unexpected signing method")
 			}
-			return []byte(config.GetConfig().ACSecrets.UserSecret), nil
+			return []byte(""), nil
 		})
 
 		if err != nil || !token.Valid {

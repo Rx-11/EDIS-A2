@@ -52,3 +52,10 @@ type updateBookRequest struct {
 	Genre       string  `json:"genre" validate:"required"`
 	Quantity    *int    `json:"quantity" validate:"required,gte=0"`
 }
+
+type fetchUserResponse struct {
+	ID       uint   `json:"id" `
+	UserID   string `json:"userId" `
+	Name     string `json:"name" `
+	Phone    string `json:"phone" `
+}

@@ -7,7 +7,9 @@ import (
 )
 
 type Config struct {
-	DbConfig     DBConfig
+	DbConfig       DBConfig
+	CustomerSvcURL string
+	BookSvcURL     string
 }
 
 type DBConfig struct {
@@ -29,6 +31,10 @@ func Init() {
 	config.DbConfig.DBPort = os.Getenv("DB_PORT")
 	config.DbConfig.DBName = os.Getenv("DB_NAME")
 	config.DbConfig.DBMigrate = os.Getenv("DB_MIGRATE") == "true"
+	config.CustomerSvcURL = os.Getenv("CUSTOMER_SVC_URL")
+	config.BookSvcURL = os.Getenv("BOOK_SVC_URL")
+
+	initFiberClient()
 }
 
 func GetConfig() Config {

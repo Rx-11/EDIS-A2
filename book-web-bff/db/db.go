@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Rx-11/EDIS-A1/config"
-	"github.com/Rx-11/EDIS-A1/pkg/models"
+	"github.com/Rx-11/EDIS-A2/book-web-bff/config"
+	"github.com/Rx-11/EDIS-A2/book-web-bff/pkg/models"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
