@@ -1,7 +1,7 @@
 package users
 
 import (
-	"github.com/Rx-11/EDIS-A1/pkg/models"
+	"github.com/Rx-11/EDIS-A2/pkg/models"
 	"gorm.io/gorm"
 )
 
