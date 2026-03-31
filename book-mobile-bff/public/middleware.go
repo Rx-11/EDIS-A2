@@ -1,8 +1,8 @@
 package public
 
 import (
+	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"log"
 	"strconv"
 	"strings"
@@ -11,7 +11,6 @@ import (
 	"github.com/Rx-11/EDIS-A2/book-mobile-bff/common"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 var validate = validator.New()
@@ -158,36 +157,30 @@ func requireClientType() fiber.Handler {
 
 func jwtMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		tokenStr := ""
-
 		authHeader := c.Get("Authorization")
-		if strings.HasPrefix(authHeader, "Bearer ") {
-			tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
-		} else {
-			tokenStr = c.Cookies("token")
-		}
-
-		if tokenStr == "" {
+		if !strings.HasPrefix(authHeader, "Bearer ") {
 			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
 				"error": "Missing or invalid token",
 			})
 		}
 
-		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, errors.New("unexpected signing method")
-			}
-			return []byte(""), nil
-		})
-
-		if err != nil || !token.Valid {
+		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+		parts := strings.Split(tokenStr, ".")
+		if len(parts) != 3 {
 			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
-				"error": "Invalid or expired token",
+				"error": "Invalid token format",
 			})
 		}
 
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
+		payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
+		if err != nil {
+			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
+				"error": "Invalid token payload",
+			})
+		}
+
+		var claims map[string]interface{}
+		if err := json.Unmarshal(payloadBytes, &claims); err != nil {
 			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
 				"error": "Invalid token payload",
 			})
@@ -206,6 +199,7 @@ func jwtMiddleware() fiber.Handler {
 				"error": "Invalid token subject",
 			})
 		}
+
 		allowed := map[string]bool{
 			"starlord": true,
 			"gamora":   true,
@@ -219,32 +213,14 @@ func jwtMiddleware() fiber.Handler {
 			})
 		}
 
-		expVal, ok := claims["exp"]
+		expFloat, ok := claims["exp"].(float64)
 		if !ok {
 			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
-				"error": "Missing exp claim",
+				"error": "Invalid exp claim",
 			})
 		}
-		var expInt int64
-		switch v := expVal.(type) {
-		case float64:
-			expInt = int64(v)
-		case int64:
-			expInt = v
-		case json.Number:
-			n, err := v.Int64()
-			if err != nil {
-				return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
-					"error": "Invalid exp claim",
-				})
-			}
-			expInt = n
-		default:
-			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
-				"error": "Invalid exp claim type",
-			})
-		}
-		if time.Unix(expInt, 0).Before(time.Now()) {
+
+		if time.Unix(int64(expFloat), 0).Before(time.Now()) {
 			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
 				"error": "Token expired",
 			})

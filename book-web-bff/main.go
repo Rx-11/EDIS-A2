@@ -7,7 +7,6 @@ import (
 	"syscall"
 
 	"github.com/Rx-11/EDIS-A2/book-web-bff/config"
-	"github.com/Rx-11/EDIS-A2/book-web-bff/db"
 	"github.com/Rx-11/EDIS-A2/book-web-bff/public"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -24,8 +23,6 @@ func main() {
 
 	config.Init()
 	log.Println("Loaded configs.")
-	db.Init(config.GetConfig().DbConfig, db.MySQL, db.LogInfo)
-	db.Migrate()
 
 	public.MountRoutes(app)
 

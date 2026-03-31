@@ -31,7 +31,7 @@ func fetchBookByISBN(c *fiber.Ctx) error {
 			JSON(common.ErrInternalServerError)
 	}
 
-	if bookResponse.Genre == "non fiction" {
+	if bookResponse.Genre == "non-fiction" {
 		book := getbookResponse{
 			ISBN:        bookResponse.ISBN,
 			Title:       bookResponse.Title,
@@ -64,10 +64,13 @@ func updateBook(c *fiber.Ctx) error {
 	param := c.Locals("param").(fetchBookByISBNParam)
 	body := c.Locals("body").(updateBookRequest)
 
-	resp, err := config.GetFiberClient().Put(config.GetConfig().BookSvcURL+"/books/"+param.ISBN, client.Config{Body: body})
+	resp, err := config.GetFiberClient().Put(
+		config.GetConfig().BookSvcURL+"/books/"+param.ISBN,
+		client.Config{Body: body},
+	)
 	if err != nil {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(resp.Body())
+	return c.Status(resp.StatusCode()).Send(resp.Body())
 }

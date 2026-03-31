@@ -25,7 +25,7 @@ func fetchUserByUserId(c *fiber.Ctx) error {
 
 	query := c.Locals("query").(fetchUserByUserIdQuery)
 
-	resp, err := config.GetFiberClient().Get(config.GetConfig().CustomerSvcURL + "/customers?user_id=" + query.UserID)
+	resp, err := config.GetFiberClient().Get(config.GetConfig().CustomerSvcURL + "/customers?userId=" + query.UserID)
 	if err != nil {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
 	}
