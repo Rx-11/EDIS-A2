@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Rx-11/EDIS-A1/common"
+	"github.com/Rx-11/EDIS-A2/book-service/common"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
