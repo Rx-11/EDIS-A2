@@ -24,29 +24,26 @@ func fetchBookByISBN(c *fiber.Ctx) error {
 		return c.Status(resp.StatusCode()).Send(resp.Body())
 	}
 
-	var bookResponse bookResponse
-	err = json.Unmarshal(resp.Body(), &bookResponse)
-	if err != nil {
+	var bookResp bookResponse
+	if err := json.Unmarshal(resp.Body(), &bookResp); err != nil {
 		return c.Status(common.ErrInternalServerError.StatusCode).
 			JSON(common.ErrInternalServerError)
 	}
 
-	if bookResponse.Genre == "non-fiction" {
+	if bookResp.Genre == "non-fiction" {
 		book := getbookResponse{
-			ISBN:        bookResponse.ISBN,
-			Title:       bookResponse.Title,
-			Author:      bookResponse.Author,
+			ISBN:        bookResp.ISBN,
+			Title:       bookResp.Title,
+			Author:      bookResp.Author,
 			Genre:       3,
-			Price:       bookResponse.Price,
-			Description: bookResponse.Description,
-			Quantity:    bookResponse.Quantity,
+			Price:       bookResp.Price,
+			Description: bookResp.Description,
+			Quantity:    bookResp.Quantity,
 		}
-		return c.JSON(book)
+		return c.Status(fiber.StatusOK).JSON(book)
 	}
 
-	c.Status(resp.StatusCode())
-
-	return c.Send(resp.Body())
+	return c.Status(fiber.StatusOK).Send(resp.Body())
 }
 
 func createBook(c *fiber.Ctx) error {

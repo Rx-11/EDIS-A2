@@ -11,58 +11,61 @@ import (
 )
 
 func fetchUserById(c *fiber.Ctx) error {
-
 	param := c.Locals("param").(fetchUserByIdParam)
 
-	resp, err := config.GetFiberClient().Get(config.GetConfig().CustomerSvcURL + "/customers/" + strconv.Itoa(int(param.ID)))
+	resp, err := config.GetFiberClient().Get(
+		config.GetConfig().CustomerSvcURL + "/customers/" + strconv.Itoa(int(param.ID)),
+	)
 	if err != nil {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
+	}
+
+	if resp.StatusCode() != fiber.StatusOK {
+		return c.Status(resp.StatusCode()).Send(resp.Body())
 	}
 
 	var user userResponse
-	err = json.Unmarshal(resp.Body(), &user)
-	if err != nil {
+	if err := json.Unmarshal(resp.Body(), &user); err != nil {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
 	}
+
 	userResp := getUserResponse{
 		ID:     user.ID,
 		UserID: user.UserID,
 		Name:   user.Name,
 		Phone:  user.Phone,
 	}
-	if resp.StatusCode() != fiber.StatusOK {
-		return c.Status(resp.StatusCode()).Send(resp.Body())
-	}
 
-	return c.JSON(userResp)
+	return c.Status(fiber.StatusOK).JSON(userResp)
 }
 
 func fetchUserByUserId(c *fiber.Ctx) error {
-
 	query := c.Locals("query").(fetchUserByUserIdQuery)
 
-	resp, err := config.GetFiberClient().Get(config.GetConfig().CustomerSvcURL + "/customers?userId=" + query.UserID)
+	resp, err := config.GetFiberClient().Get(
+		config.GetConfig().CustomerSvcURL + "/customers?userId=" + query.UserID,
+	)
 	if err != nil {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
+	}
+
+	if resp.StatusCode() != fiber.StatusOK {
+		return c.Status(resp.StatusCode()).Send(resp.Body())
 	}
 
 	var user userResponse
-	err = json.Unmarshal(resp.Body(), &user)
-	if err != nil {
+	if err := json.Unmarshal(resp.Body(), &user); err != nil {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
 	}
+
 	userResp := getUserResponse{
 		ID:     user.ID,
 		UserID: user.UserID,
 		Name:   user.Name,
 		Phone:  user.Phone,
 	}
-	if resp.StatusCode() != fiber.StatusOK {
-		return c.Status(resp.StatusCode()).Send(resp.Body())
-	}
 
-	return c.JSON(userResp)
-
+	return c.Status(fiber.StatusOK).JSON(userResp)
 }
 
 func createUser(c *fiber.Ctx) error {
