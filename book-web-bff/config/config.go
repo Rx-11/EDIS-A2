@@ -25,12 +25,6 @@ var config Config
 
 func Init() {
 	_ = godotenv.Load()
-	config.DbConfig.DBUser = os.Getenv("DB_USER")
-	config.DbConfig.DBPassword = os.Getenv("DB_PASSWORD")
-	config.DbConfig.DBHost = os.Getenv("DB_HOST")
-	config.DbConfig.DBPort = os.Getenv("DB_PORT")
-	config.DbConfig.DBName = os.Getenv("DB_NAME")
-	config.DbConfig.DBMigrate = os.Getenv("DB_MIGRATE") == "true"
 	config.CustomerSvcURL = os.Getenv("CUSTOMER_SVC_URL")
 	config.BookSvcURL = os.Getenv("BOOK_SVC_URL")
 
