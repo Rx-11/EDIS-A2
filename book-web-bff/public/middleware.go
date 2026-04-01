@@ -159,7 +159,7 @@ func jwtMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Missing or invalid token",
 			})
 		}
@@ -167,66 +167,67 @@ func jwtMiddleware() fiber.Handler {
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 		parts := strings.Split(tokenStr, ".")
 		if len(parts) != 3 {
-			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token format",
 			})
 		}
 
 		payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
 		if err != nil {
-			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token payload",
 			})
 		}
 
 		var claims map[string]interface{}
 		if err := json.Unmarshal(payloadBytes, &claims); err != nil {
-			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token payload",
 			})
 		}
 
-		iss, ok := claims["iss"].(string)
-		if !ok || iss != "cmu.edu" {
-			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
-				"error": "Invalid token issuer",
-			})
-		}
-
-		sub, ok := claims["sub"].(string)
-		if !ok {
-			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
-				"error": "Invalid token subject",
-			})
-		}
-
-		allowed := map[string]bool{
+		validSubs := map[string]bool{
 			"starlord": true,
 			"gamora":   true,
 			"drax":     true,
 			"rocket":   true,
 			"groot":    true,
 		}
-		if !allowed[sub] {
-			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
-				"error": "Unauthorized subject",
+
+		sub, ok := claims["sub"].(string)
+		if !ok || !validSubs[sub] {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid token subject",
 			})
 		}
 
-		expFloat, ok := claims["exp"].(float64)
+		iss, ok := claims["iss"].(string)
+		if !ok || iss != "cmu.edu" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid token issuer",
+			})
+		}
+
+		expVal, ok := claims["exp"]
 		if !ok {
-			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
-				"error": "Invalid exp claim",
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Missing token expiration",
 			})
 		}
 
-		if time.Unix(int64(expFloat), 0).Before(time.Now()) {
-			return c.Status(common.ErrUnauthorized.StatusCode).JSON(fiber.Map{
+		expFloat, ok := expVal.(float64)
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid token expiration",
+			})
+		}
+
+		if int64(expFloat) <= time.Now().Unix() {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Token expired",
 			})
 		}
 
-		c.Locals("user_id", sub)
 		return c.Next()
 	}
 }
