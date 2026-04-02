@@ -71,7 +71,7 @@ func fetchUserByUserId(c *fiber.Ctx) error {
 func createUser(c *fiber.Ctx) error {
 	body := c.Locals("body").(createUserRequest)
 
-	resp, err := config.GetFiberClient().Post(config.GetConfig().CustomerSvcURL+"/customers/", client.Config{Body: body})
+	resp, err := config.GetFiberClient().Post(config.GetConfig().CustomerSvcURL+"/customers", client.Config{Body: body})
 	if err != nil {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
 	}

@@ -49,7 +49,7 @@ func fetchBookByISBN(c *fiber.Ctx) error {
 func createBook(c *fiber.Ctx) error {
 	body := c.Locals("body").(createBookRequest)
 
-	resp, err := config.GetFiberClient().Post(config.GetConfig().BookSvcURL+"/books/", client.Config{Body: body})
+	resp, err := config.GetFiberClient().Post(config.GetConfig().BookSvcURL+"/books", client.Config{Body: body})
 	if err != nil {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
 	}
