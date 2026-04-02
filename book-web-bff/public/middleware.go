@@ -29,21 +29,21 @@ func init() {
 func parseBody[T any](_ T) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var body T
-		err := c.BodyParser(&body)
-		if err != nil {
-			log.Println(err)
+		if err := c.BodyParser(&body); err != nil {
+			log.Printf("parseBody error path=%s raw=%s err=%v", c.Path(), string(c.Body()), err)
 			return c.Status(common.ErrInvalidParams.StatusCode).JSON(fiber.Map{
 				"error": "Invalid params - body",
 			})
 		}
 
-		err = validate.Struct(body)
-		if err != nil {
-			log.Println("Validation error:", err)
+		if err := validate.Struct(body); err != nil {
+			log.Printf("parseBody validation failed path=%s body=%+v err=%v", c.Path(), body, err)
 			return c.Status(common.ErrInvalidParams.StatusCode).JSON(fiber.Map{
 				"error": "Validation failed - body",
 			})
 		}
+
+		log.Printf("parseBody ok path=%s body=%+v", c.Path(), body)
 		c.Locals("body", body)
 		return c.Next()
 	}
@@ -52,21 +52,21 @@ func parseBody[T any](_ T) fiber.Handler {
 func parseQuery[T any](_ T) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var query T
-		err := c.QueryParser(&query)
-		if err != nil {
-			log.Println(err)
+		if err := c.QueryParser(&query); err != nil {
+			log.Printf("parseQuery error path=%s rawQuery=%s err=%v", c.Path(), c.Context().QueryArgs().String(), err)
 			return c.Status(common.ErrInvalidParams.StatusCode).JSON(fiber.Map{
 				"error": "Invalid params - query",
 			})
 		}
 
-		err = validate.Struct(query)
-		if err != nil {
-			log.Println("Validation error:", err)
+		if err := validate.Struct(query); err != nil {
+			log.Printf("parseQuery validation failed path=%s rawQuery=%s parsed=%+v err=%v", c.Path(), c.Context().QueryArgs().String(), query, err)
 			return c.Status(common.ErrInvalidParams.StatusCode).JSON(fiber.Map{
 				"error": "Validation failed - query",
 			})
 		}
+
+		log.Printf("parseQuery ok path=%s parsed=%+v", c.Path(), query)
 		c.Locals("query", query)
 		return c.Next()
 	}
@@ -75,21 +75,21 @@ func parseQuery[T any](_ T) fiber.Handler {
 func parseParam[T any](_ T) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var param T
-		err := c.ParamsParser(&param)
-		if err != nil {
-			log.Println(err)
+		if err := c.ParamsParser(&param); err != nil {
+			log.Printf("parseParam error path=%s params=%v err=%v", c.Path(), c.AllParams(), err)
 			return c.Status(common.ErrInvalidParams.StatusCode).JSON(fiber.Map{
 				"error": "Invalid params - param",
 			})
 		}
 
-		err = validate.Struct(param)
-		if err != nil {
-			log.Println("Validation error:", err)
+		if err := validate.Struct(param); err != nil {
+			log.Printf("parseParam validation failed path=%s params=%v parsed=%+v err=%v", c.Path(), c.AllParams(), param, err)
 			return c.Status(common.ErrInvalidParams.StatusCode).JSON(fiber.Map{
 				"error": "Validation failed - param",
 			})
 		}
+
+		log.Printf("parseParam ok path=%s parsed=%+v", c.Path(), param)
 		c.Locals("param", param)
 		return c.Next()
 	}
