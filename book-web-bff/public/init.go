@@ -18,17 +18,17 @@ func MountRoutes(router *fiber.App) {
 
 	userGroup := router.Group("/customers")
 	{
-		userGroup.Post("/", requireClientType(), jwtMiddleware(), parseBody(createUserRequest{}), createUser)
-		userGroup.Get("/", requireClientType(), jwtMiddleware(), parseQuery(fetchUserByUserIdQuery{}), fetchUserByUserId)
-		userGroup.Get("/:id", requireClientType(), jwtMiddleware(), parseParam(fetchUserByIdParam{}), fetchUserById)
+		userGroup.Post("/", jwtMiddleware(), requireClientType(), parseBody(createUserRequest{}), createUser)
+		userGroup.Get("/", jwtMiddleware(), requireClientType(), parseQuery(fetchUserByUserIdQuery{}), fetchUserByUserId)
+		userGroup.Get("/:id", jwtMiddleware(), requireClientType(), parseParam(fetchUserByIdParam{}), fetchUserById)
 	}
 
 	bookGroup := router.Group("/books")
 	{
-		bookGroup.Post("/", requireClientType(), jwtMiddleware(), parseBody(createBookRequest{}), createBook)
-		bookGroup.Get("/isbn/:isbn", requireClientType(), jwtMiddleware(), parseParam(fetchBookByISBNParam{}), fetchBookByISBN)
-		bookGroup.Get("/:isbn", requireClientType(), jwtMiddleware(), parseParam(fetchBookByISBNParam{}), fetchBookByISBN)
-		bookGroup.Put("/:isbn", requireClientType(), jwtMiddleware(), parseParam(fetchBookByISBNParam{}), parseBody(updateBookRequest{}), updateBook)
+		bookGroup.Post("/", jwtMiddleware(), requireClientType(), parseBody(createBookRequest{}), createBook)
+		bookGroup.Get("/isbn/:isbn", jwtMiddleware(), requireClientType(), parseParam(fetchBookByISBNParam{}), fetchBookByISBN)
+		bookGroup.Get("/:isbn", jwtMiddleware(), requireClientType(), parseParam(fetchBookByISBNParam{}), fetchBookByISBN)
+		bookGroup.Put("/:isbn", jwtMiddleware(), requireClientType(), parseParam(fetchBookByISBNParam{}), parseBody(updateBookRequest{}), updateBook)
 	}
 
 }
