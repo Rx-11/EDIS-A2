@@ -140,11 +140,11 @@ func requireClientType() fiber.Handler {
 		}
 
 		allowed := map[string]bool{
-			"Web":     true,
-			"iOS":     true,
-			"Android": true,
+			"web":     true,
+			"ios":     true,
+			"android": true,
 		}
-		if !allowed[client] {
+		if !allowed[strings.ToLower(client)] {
 			return c.Status(common.ErrInvalidParams.StatusCode).JSON(fiber.Map{
 				"error": "Invalid X-Client-Type header",
 			})

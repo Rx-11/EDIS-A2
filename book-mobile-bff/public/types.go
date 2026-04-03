@@ -73,6 +73,7 @@ type userResponse struct {
 }
 
 type bookResponse struct {
+	ID          uint    `json:"id"`
 	ISBN        string  `json:"isbn" validate:"required"`
 	Title       string  `json:"title" validate:"required"`
 	Author      string  `json:"author" validate:"required"`
@@ -80,9 +81,11 @@ type bookResponse struct {
 	Description string  `json:"description" validate:"required"`
 	Genre       string  `json:"genre" validate:"required"`
 	Quantity    *int    `json:"quantity" validate:"required,gte=0"`
+	Summary     *string `json:"summary,omitempty"`
 }
 
 type getbookResponse struct {
+	ID          uint    `json:"id"`
 	ISBN        string  `json:"isbn" validate:"required"`
 	Title       string  `json:"title" validate:"required"`
 	Author      string  `json:"author" validate:"required"`
@@ -90,4 +93,5 @@ type getbookResponse struct {
 	Description string  `json:"description" validate:"required"`
 	Genre       int     `json:"genre" validate:"required"`
 	Quantity    *int    `json:"quantity" validate:"required,gte=0"`
+	Summary     *string `json:"summary,omitempty"`
 }
