@@ -73,10 +73,10 @@ type userResponse struct {
 }
 
 type bookResponse struct {
-	ID          uint    `json:"id"`
-	ISBN        string  `json:"isbn" validate:"required"`
+	ID          uint    `json:"-"`
+	ISBN        string  `json:"ISBN" validate:"required"`
 	Title       string  `json:"title" validate:"required"`
-	Author      string  `json:"author" validate:"required"`
+	Author      string  `json:"Author" validate:"required"`
 	Price       float64 `json:"price" validate:"required,gt=0,decimals2"`
 	Description string  `json:"description" validate:"required"`
 	Genre       string  `json:"genre" validate:"required"`
@@ -85,10 +85,10 @@ type bookResponse struct {
 }
 
 type getbookResponse struct {
-	ID          uint    `json:"id"`
-	ISBN        string  `json:"isbn" validate:"required"`
+	ID          uint    `json:"-"`
+	ISBN        string  `json:"ISBN" validate:"required"`
 	Title       string  `json:"title" validate:"required"`
-	Author      string  `json:"author" validate:"required"`
+	Author      string  `json:"Author" validate:"required"`
 	Price       float64 `json:"price" validate:"required,gt=0,decimals2"`
 	Description string  `json:"description" validate:"required"`
 	Genre       int     `json:"genre" validate:"required"`

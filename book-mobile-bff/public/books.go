@@ -32,7 +32,6 @@ func fetchBookByISBN(c *fiber.Ctx) error {
 
 	if bookResp.Genre == "non-fiction" {
 		book := getbookResponse{
-			ID:          bookResp.ID,
 			ISBN:        bookResp.ISBN,
 			Title:       bookResp.Title,
 			Author:      bookResp.Author,
@@ -56,33 +55,7 @@ func createBook(c *fiber.Ctx) error {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
 	}
 
-	if resp.StatusCode() != fiber.StatusCreated {
-		return c.Status(resp.StatusCode()).Send(resp.Body())
-	}
-
-	var bookResp bookResponse
-	if err := json.Unmarshal(resp.Body(), &bookResp); err != nil {
-		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
-	}
-
-	if bookResp.Genre == "non-fiction" {
-		book := getbookResponse{
-			ID:          bookResp.ID,
-			ISBN:        bookResp.ISBN,
-			Title:       bookResp.Title,
-			Author:      bookResp.Author,
-			Genre:       3,
-			Price:       bookResp.Price,
-			Description: bookResp.Description,
-			Quantity:    bookResp.Quantity,
-			Summary:     bookResp.Summary,
-		}
-		c.Set("Location", c.BaseURL()+"/books/"+book.ISBN)
-		return c.Status(fiber.StatusCreated).JSON(book)
-	}
-
-	c.Set("Location", c.BaseURL()+"/books/"+bookResp.ISBN)
-	return c.Status(fiber.StatusCreated).JSON(bookResp)
+	return c.Status(resp.StatusCode()).Send(resp.Body())
 }
 
 func updateBook(c *fiber.Ctx) error {
@@ -97,29 +70,5 @@ func updateBook(c *fiber.Ctx) error {
 		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
 	}
 
-	if resp.StatusCode() != fiber.StatusOK {
-		return c.Status(resp.StatusCode()).Send(resp.Body())
-	}
-
-	var bookResp bookResponse
-	if err := json.Unmarshal(resp.Body(), &bookResp); err != nil {
-		return c.Status(common.ErrInternalServerError.StatusCode).JSON(common.ErrInternalServerError)
-	}
-
-	if bookResp.Genre == "non-fiction" {
-		book := getbookResponse{
-			ID:          bookResp.ID,
-			ISBN:        bookResp.ISBN,
-			Title:       bookResp.Title,
-			Author:      bookResp.Author,
-			Genre:       3,
-			Price:       bookResp.Price,
-			Description: bookResp.Description,
-			Quantity:    bookResp.Quantity,
-			Summary:     bookResp.Summary,
-		}
-		return c.Status(fiber.StatusOK).JSON(book)
-	}
-
-	return c.Status(fiber.StatusOK).JSON(bookResp)
+	return c.Status(resp.StatusCode()).Send(resp.Body())
 }
